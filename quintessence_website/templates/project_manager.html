@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>quintessence project_manager</title>
+    <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
+</head>
+<body>
+    <form method="POST" id="post-form">
+        {% csrf_token %}
+        <input name="action_type" type="text" value="delete" style="display: none;">
+        <div id="results"></div> <!-- errors go here -->
+        <input type="submit" value="Post">
+    </form>
+    <script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
+    <script>
+        // Submit post on submit
+        $('#post-form').on('submit', function(event){
+            event.preventDefault();
+            create_post();
+        });
+
+        // AJAX for posting
+        function create_post() {
+            $.ajax({
+                url : "../request_handler/", // the endpoint
+                type : "POST", // http method
+                {#data : { the_post : $('#post-form').serialize() }, // data sent with the post request#}
+                data:{
+                    csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                    action_type: $('input[name=action_type]').val()
+                },
+
+                // handle a successful response
+                success : function(json) {
+                    $('#post-text').val(''); // remove the value from the input
+                    {#console.log(json); // log the returned json to the console#}
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+        };
+    </script>
+</body>
+</html>

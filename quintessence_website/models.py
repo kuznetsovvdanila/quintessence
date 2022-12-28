@@ -1,9 +1,10 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime
 from django.db import models
 
 
 class Description(models.Model):
     text = models.CharField('Часть описания', null=True, max_length=8192)
+    position = models.IntegerField('Порядковый номер', null=True, default=0)
 
     class Meta:
         verbose_name = "Часть описания"
@@ -15,6 +16,7 @@ class Description(models.Model):
 
 class Image(models.Model):
     image = models.ImageField(null=True)
+    position = models.IntegerField('Порядковый номер', null=True, default=0)
 
     class Meta:
         verbose_name = "Изображение"
