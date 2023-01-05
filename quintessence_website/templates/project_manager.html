@@ -7,45 +7,138 @@
     <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
 </head>
 <body>
-    <form method="POST" id="post-form">
-        {% csrf_token %}
-        <input name="action_type" type="text" value="delete" style="display: none;">
-        <div id="results"></div> <!-- errors go here -->
-        <input type="submit" value="Post">
-    </form>
+    {% if request.user.is_authenticated %}
+        <header class="flex btw gilroy_regular">
+            <div>
+                quintessence
+            </div>
+            <div class="logout">
+                <form method="POST" id="post-form" class="logout">
+                    {% csrf_token %}
+                    <input name="action_type" type="text" value="delete" style="display: none;">
+                    <div id="results"></div> <!-- errors go here -->
+                    <input type="submit" value="logout">
+                </form>
+            </div>
+        </header>
+        <main class="flex column v_center">
+            <div class="project_header flex btw">
+                <h1 class="gilroy_bold">
+                    Проекты
+                </h1>
+                <div class="project_add">
+
+                </div>
+            </div>
+            <div class="projects flex">
+                {% for project in projects %}
+                    <div class="project_container {{ project.id }}">
+                        <div class="project_image">
+
+                        </div>
+                        <div class="project_name">
+                            {{ project.name }}
+                        </div>
+                        <div class="project_managing flex">
+                            <div class="project_edit {{ project.id }}">
+
+                            </div>
+                            <div class="project_delete {{ project.id }}">
+                                {% csrf_token %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </main>
+    {% else %}
+        <div class="auth_container flex center v_center">
+            <form method="POST" id="post-form" class="auth flex column auth">
+                {% csrf_token %}
+                <input name="action_type" type="text" value="auth" style="display: none;">
+                <input name="login" type="text" placeholder="Логин">
+                <input name="password" type="password" placeholder="Пароль">
+                <div id="results"></div> <!-- errors go here -->
+                <input type="submit" value="Войти">
+            </form>
+        </div>
+    {% endif %}
     <script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
     <script>
+        calculate_margins();
         // Submit post on submit
-        $('#post-form').on('submit', function(event){
-            event.preventDefault();
-            create_post();
+        $('.project_delete').click(function() {
+            let form_data = {
+                csrfmiddlewaretoken: $(this).children()[0].value,
+                action_type: 'delete',
+                id: this.classList[1]
+            }
+            create_post(form_data)
+        })
+        $('form').on('submit', function(event) {
+            event.preventDefault()
+
+            let form_data = {}
+            if ($(this).hasClass('auth')) {
+                form_data = {
+                    csrfmiddlewaretoken: $('form.auth > input[name=csrfmiddlewaretoken]').val(),
+                    action_type: 'auth',
+                    login: $('form.auth > input[name=login]').val(),
+                    password: $('form.auth > input[name=password]').val()
+                }
+            }
+            if ($(this).hasClass('logout')) {
+                form_data = {
+                    csrfmiddlewaretoken: $('form.logout > input[name=csrfmiddlewaretoken]').val(),
+                    action_type: 'logout'
+                }
+            }
+            create_post(form_data)
         });
 
         // AJAX for posting
-        function create_post() {
+        function create_post(form_data) {
             $.ajax({
                 url : "../request_handler/", // the endpoint
                 type : "POST", // http method
                 {#data : { the_post : $('#post-form').serialize() }, // data sent with the post request#}
-                data:{
-                    csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
-                    action_type: $('input[name=action_type]').val()
-                },
+                data : form_data,
 
                 // handle a successful response
                 success : function(json) {
                     $('#post-text').val(''); // remove the value from the input
-                    {#console.log(json); // log the returned json to the console#}
+                    if (json['action_type'] === 'auth' || json['action_type'] === 'logout') {
+                        location.reload();
+                    }
+                    if (json['action_type'] === 'delete' && json['status'] === 'succeeded') {
+                        let project_container = $('.project_container.' + form_data.id.toString());
+                        project_container.addClass('deleted');
+                        setTimeout(() => {
+                            project_container.remove()
+                            calculate_margins()
+                        }, 1000)
+                    }
                 },
 
                 // handle a non-successful response
                 error : function(xhr,errmsg,err) {
-                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Произошёл прикол: "+errmsg+
                         " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
                     console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
                 }
             });
         };
+        function calculate_margins() {
+            let project_containers = document.getElementsByClassName('project_container');
+            for (let i = 1; i < project_containers.length + 1; i++) {
+                if (i % 3 !== 0) {
+                    $(project_containers[i - 1]).css('margin', '0 4vw 4vw 0');
+                }
+                else {
+                    $(project_containers[i - 1]).css('margin', '0 0 4vw 0');
+                }
+            }
+        }
     </script>
 </body>
 </html>
