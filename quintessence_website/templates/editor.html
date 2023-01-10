@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>project editor - quintessence</title>
+    <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
+</head>
+<body>
+    <header class="flex btw gilroy_regular">
+        <div class="uppercase">
+            quintessence
+        </div>
+        <div class="logout">
+            <form method="POST" id="post-form" class="logout">
+                <input name="action_type" type="text" value="delete" style="display: none;">
+                <div id="results"></div> <!-- errors go here -->
+                <input type="submit" value="выйти из аккаунта">
+            </form>
+        </div>
+    </header>
+    <div class="editor">
+        <div class="editor_info">
+            <div class="editor_info_header gilroy_bold uppercase">
+                Редактор
+            </div>
+            <div class="editor_info_blocks grid gilroy_regular">
+                <div class="editor_info_block block_1">
+                    Добро пожаловать в редактор проекта. Здесь вы можете изменить параметры вашей работы. Для этого достаточно нажать на соответствующее поле и ввести новое значение
+                </div>
+                <div class="editor_info_block block_2">
+                    Страница отображается так, как она будет выглядеть после её редактирования. Вы можете поэксперементировать с фотографиями и текстом, чтобы добиться наилучшего результата
+                </div>
+                <div class="editor_info_block block_3 flex">
+                    <a href="{% url 'project_manager' %}">
+                        к проектам
+                    </a>
+                    <a href="{% url 'index' %}">
+                        на главную
+                    </a>
+                    <div class="save {{ project.id }}" onclick="save_project()">
+                        <div class="save_text">
+                            сохранить проект
+                        </div>
+                        {% csrf_token %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <textarea class="project_name uppercase" placeholder="Название">{{ project.name }}</textarea>
+        <div class="preview_image">
+
+        </div>
+        <div class="project_info flex btw">
+            <div class="project_category">
+                <div class="project_category_name gilroy_regular uppercase">
+                    Для кого:
+                </div>
+                <div class="project_category_option">
+
+                </div>
+            </div>
+            <div class="project_description">
+                <div class="project_description_name gilroy_regular uppercase">
+                    О проекте:
+                </div>
+                <textarea class="project_description_text" placeholder="Описание">{{ project.description }}</textarea>
+            </div>
+            <div class="project_location">
+                <div class="project_location_name gilroy_regular uppercase">
+                    Город:
+                </div>
+                <textarea class="project_location_city" placeholder="Город"></textarea>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
+    <script>
+        function save_project() {
+            let form_data = {}
+            let save_button = document.getElementsByClassName('save')[0]
+            if (save_button.classList.length > 1) {
+                form_data = {
+                    csrfmiddlewaretoken: $('.save > input[name=csrfmiddlewaretoken]').val(),
+                    action_type: 'update_project',
+                    id: save_button.classList[1],
+                    name: $('textarea.project_name').val(),
+                    description: $('textarea.description').val()
+                }
+            }
+            else {
+                form_data = {
+                    csrfmiddlewaretoken: $('.save > input[name=csrfmiddlewaretoken]').val(),
+                    action_type: 'create_project',
+                    name: $('textarea.project_name').val(),
+                    description: $('textarea.description').val()
+                }
+            }
+            create_post(form_data)
+        }
+        function create_post(form_data) {
+            console.log(form_data)
+            $.ajax({
+                url : "../../request_handler/", // the endpoint
+                type : "POST", // http method
+                data : form_data,
+
+                // handle a successful response
+                success : function(json) {
+                    $('#post-text').val(''); // remove the value from the input
+                    if (json['action_type'] === 'auth' || json['action_type'] === 'logout') {
+                        location.reload();
+                    }
+                    if ((json['action_type'] === 'update_project' || json['action_type'] === 'create_project')  && json['status'] === 'succeeded') {
+                        $('.save_text').html('проект сохранён')
+                        $('.save').css('background-color', '#236229')
+                        setTimeout(() => {
+                            $('.save_text').html('сохранить проект')
+                            $('.save').css('background-color', 'transparent')
+                        }, 2000)
+                    }
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    if (form_data['action_type'] === 'update_project' || form_data['action_type'] === 'create_project') {
+                        $('.save_text').html('произошла ошибка')
+                        $('.save').css('background-color', '#711A1A')
+                        setTimeout(() => {
+                            $('.save_text').html('сохранить проект')
+                            $('.save').css('background-color', 'transparent')
+                        }, 2000)
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

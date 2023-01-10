@@ -3,13 +3,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>quintessence project_manager</title>
+    <title>project manager - quintessence</title>
     <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
 </head>
 <body>
     {% if request.user.is_authenticated %}
+        <div class="project_delete_confirm_container flex center v_center fixed hidden">
+
+        </div>
+        <div class="project_delete_confirm flex column fixed hidden">
+            <div class="text gilroy_regular">
+                Вы уверены, что хотите удалить проект?
+            </div>
+            <div class="buttons flex gilroy_regular">
+                <div class="button yes">
+                    Удалить
+                </div>
+                <div class="button no">
+                    Отмена
+                </div>
+            </div>
+        </div>
         <header class="flex btw gilroy_regular">
-            <div>
+            <div class="uppercase">
                 quintessence
             </div>
             <div class="logout">
@@ -17,32 +33,32 @@
                     {% csrf_token %}
                     <input name="action_type" type="text" value="delete" style="display: none;">
                     <div id="results"></div> <!-- errors go here -->
-                    <input type="submit" value="logout">
+                    <input type="submit" value="выйти из аккаунта">
                 </form>
             </div>
         </header>
         <main class="flex column v_center">
-            <div class="project_header flex btw">
-                <h1 class="gilroy_bold">
+            <div class="project_header flex column">
+                <h1 class="gilroy_bold uppercase">
                     Проекты
                 </h1>
-                <div class="project_add">
-
-                </div>
+                <a href="{% url 'editor' %}" class="project_add gilroy_regular">
+                    Добавить
+                </a>
             </div>
             <div class="projects flex">
                 {% for project in projects %}
                     <div class="project_container {{ project.id }}">
-                        <div class="project_image">
+                        <div class="project_image" {% if project.image_preview %}style="background-image: url({{ project.image_preview.url }});"{% endif %}>
 
                         </div>
                         <div class="project_name">
                             {{ project.name }}
                         </div>
                         <div class="project_managing flex">
-                            <div class="project_edit {{ project.id }}">
+                            <a href="{% url 'editor' project.id %}" class="project_edit {{ project.id }}">
 
-                            </div>
+                            </a>
                             <div class="project_delete {{ project.id }}">
                                 {% csrf_token %}
                             </div>
@@ -66,14 +82,36 @@
     <script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
     <script>
         calculate_margins();
+
         // Submit post on submit
+        let container;
         $('.project_delete').click(function() {
-            let form_data = {
-                csrfmiddlewaretoken: $(this).children()[0].value,
+            $('.project_delete_confirm_container').removeClass('hidden')
+            $('.project_delete_confirm').removeClass('hidden')
+
+            container = this
+        })
+        $('.button.yes').click(function() {
+            // let form_data = {
+            //    csrfmiddlewaretoken: $(container).children()[0].value,
+            //    action_type: 'delete',
+            //    id: container.classList[1]
+            // }
+            create_post({
+                csrfmiddlewaretoken: $(container).children()[0].value,
                 action_type: 'delete',
-                id: this.classList[1]
-            }
-            create_post(form_data)
+                id: container.classList[1]
+            })
+            $('.project_delete_confirm_container').addClass('hidden')
+            $('.project_delete_confirm').addClass('hidden')
+        })
+        $('.button.no').click(function() {
+            $('.project_delete_confirm_container').addClass('hidden')
+            $('.project_delete_confirm').addClass('hidden')
+        })
+        $('.project_delete_confirm_container').click(function() {
+            $('.project_delete_confirm_container').addClass('hidden')
+            $('.project_delete_confirm').addClass('hidden')
         })
         $('form').on('submit', function(event) {
             event.preventDefault()
