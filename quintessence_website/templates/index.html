@@ -6,9 +6,136 @@
     <title>quintessence</title>
     <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
 </head>
-<body>
-    {% for project in projects %}
-        {{ project.name }}
-    {% endfor %}
+<body class="flex column v_center">
+    <header class="index_header flex btw gilroy_regular">
+        <a href="index.html" class="logo uppercase">
+            quintessence
+        </a>
+        <div class="index_nav flex v_center">
+            <a href="">
+                Проекты
+            </a>
+            <a href="">
+                Этапы работ
+            </a>
+        </div>
+        <div class="index_nav account flex v_center">
+            <a href="about.html">
+                О нас
+            </a>
+            <a href="contacts.html">
+                Контакты
+            </a>
+            <div class="fill_brief">
+                Заполнить бриф
+            </div>
+        </div>
+    </header>
+    <div class="page_changer flex btw fixed gilroy_regular">
+        <div class="page_changer_option projects_option flex center v_center active">
+            Проекты
+        </div>
+        <div class="page_changer_option price_option flex center v_center">
+            Прайс
+        </div>
+        <div class="page_changer_switcher">
+
+        </div>
+    </div>
+    <div class="smooth_scroll projects_page">
+        <div class="main_container flex btw gilroy_regular">
+            {% for project in projects %}
+                <div class="project_container">
+                    <div class="project_image" {% if project.image_preview %}style="background-image: url('{{ project.image_preview.url }}')"{% endif %}>
+
+                    </div>
+                    <div class="project_name">
+                        {{ project.name }}
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="show_more_button_container flex center">
+                <div class="show_more_button">
+                    Показать еще
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
+    <script>
+        // smooth scroll
+        function projects_placer() {
+            const project_containers = document.getElementsByClassName('project_container');
+
+            for (let i = 0; i < project_containers.length / 2; i++) {
+                if (i % 3 == 0) {
+                    $(project_containers[i * 2]).addClass('wide');
+                    if (i * 2 < project_containers.length) {
+                        $(project_containers[i * 2 + 1]).addClass('thin');
+                    }
+                }
+                else {
+                    $(project_containers[i * 2]).addClass('thin');
+                    if (i * 2 < project_containers.length) {
+                        $(project_containers[i * 2 + 1]).addClass('wide');
+                    }
+                }
+            }
+        }
+        projects_placer();
+
+        const body = document.body,
+        smooth_scroll = document.getElementsByClassName('smooth_scroll')[0],
+        smooth_scroll_height = smooth_scroll.getBoundingClientRect().height - 1,
+        speed = 0.15;
+
+        var offset = 0;
+
+        body.style.height = Math.floor(smooth_scroll_height) + "px";
+
+        function smooth_scrolling() {
+            offset += (window.pageYOffset - offset) * speed;
+
+            var scroll = "translateY(-" + offset + "px) translateZ(0)";
+            smooth_scroll.style.transform = scroll;
+
+            call_scroll = requestAnimationFrame(smooth_scrolling);
+        }
+        smooth_scrolling();
+
+
+        // projects / price changer
+        $('.page_changer_option.price_option').click(function() {
+            if ($('.page_changer_option.projects_option').hasClass('active')) {
+                $('.smooth_scroll.projects_page').css('transition', '0.5s');
+                $('.smooth_scroll.projects_page').css('padding', '5vw 0 0 0');
+                $('.smooth_scroll.projects_page').css('opacity', '0');
+
+                $('.page_changer_switcher').css('min-width', '100%')
+                setTimeout(() => {
+                    $('.page_changer_switcher').css('right', '50%')
+                    $('.page_changer_switcher').css('min-width', '50%')
+                }, 200)
+            }
+            $('.page_changer_option.price_option').addClass('active')
+            $('.page_changer_option.projects_option').removeClass('active')
+        })
+        $('.page_changer_option.projects_option').click(function() {
+            if ($('.page_changer_option.price_option').hasClass('active')) {
+                $('.smooth_scroll.projects_page').css('padding', '0vw 0 0 0');
+                $('.smooth_scroll.projects_page').css('opacity', '1');
+                $('.smooth_scroll.projects_page').css('transition', '0');
+
+                $('.page_changer_switcher').css('right', '100%')
+                $('.page_changer_switcher').css('min-width', '100%')
+                setTimeout(() => {
+                    $('.page_changer_switcher').css('min-width', '50%')
+                    $('.smooth_scroll.projects_page').css('transition', '0s');
+                }, 200)
+            }
+            $('.page_changer_option.projects_option').addClass('active')
+            $('.page_changer_option.price_option').removeClass('active')
+        })
+    </script>
 </body>
 </html>

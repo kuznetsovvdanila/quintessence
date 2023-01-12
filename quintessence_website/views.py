@@ -37,7 +37,7 @@ def request_handler(request):
     response_data = {}
 
     def delete_project():
-        # Project.objects.filter(id=request.POST.get('id')).delete()
+        Project.objects.filter(id=request.POST.get('id')).delete()
         return {'action_type': 'delete',
                 'status': 'succeeded'}
 
@@ -48,6 +48,7 @@ def request_handler(request):
         new_project.save()
         return {'action_type': 'create_project',
                 'status': 'succeeded',
+                'id': new_project.id,
                 'name': new_project.name,
                 'description': new_project.description}
 

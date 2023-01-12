@@ -8,10 +8,13 @@
 </head>
 <body>
     <header class="flex btw gilroy_regular">
-        <div class="uppercase">
+        <a href="{% url 'index' %}" class="logo uppercase">
             quintessence
-        </div>
-        <div class="logout">
+        </a>
+        <div class="account flex v_center">
+            <a href="{% url 'project_manager' %}" class="project_add gilroy_regular">
+                вернуться к проектам
+            </a>
             <form method="POST" id="post-form" class="logout">
                 <input name="action_type" type="text" value="delete" style="display: none;">
                 <div id="results"></div> <!-- errors go here -->
@@ -48,7 +51,8 @@
             </div>
 
         </div>
-        <textarea class="project_name uppercase" placeholder="Название">{{ project.name }}</textarea>
+        <div contenteditable="true" class="project_name uppercase" placeholder="Название">{{ project.name }}</div>
+{#        <textarea class="project_name uppercase" placeholder="Название">{{ project.name }}</textarea>#}
         <div class="preview_image">
 
         </div>
@@ -77,27 +81,49 @@
     </div>
     <script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
     <script>
-        function save_project() {
-            let form_data = {}
-            let save_button = document.getElementsByClassName('save')[0]
-            if (save_button.classList.length > 1) {
-                form_data = {
-                    csrfmiddlewaretoken: $('.save > input[name=csrfmiddlewaretoken]').val(),
-                    action_type: 'update_project',
-                    id: save_button.classList[1],
-                    name: $('textarea.project_name').val(),
-                    description: $('textarea.description').val()
+        $(function($){
+            let element = $("div[contenteditable].project_name")
+            if (!element.text().trim().length) {
+                element.empty();
+            }
+            element.focusout(function(){
+                if (!element.text().trim().length) {
+                    element.empty();
                 }
+            });
+        });
+        function save_project() {
+            if ($('.project_name').text().trim().length) {
+                let form_data = {}
+                let save_button = document.getElementsByClassName('save')[0]
+                if (save_button.classList.length > 1) {
+                    form_data = {
+                        csrfmiddlewaretoken: $('.save > input[name=csrfmiddlewaretoken]').val(),
+                        action_type: 'update_project',
+                        id: save_button.classList[1],
+                        name: $('.project_name').text(),
+                        description: $('.description').text()
+                    }
+                }
+                else {
+                    form_data = {
+                        csrfmiddlewaretoken: $('.save > input[name=csrfmiddlewaretoken]').val(),
+                        action_type: 'create_project',
+                        name: $('.project_name').text(),
+                        description: $('.description').text()
+                    }
+                }
+                create_post(form_data)
             }
             else {
-                form_data = {
-                    csrfmiddlewaretoken: $('.save > input[name=csrfmiddlewaretoken]').val(),
-                    action_type: 'create_project',
-                    name: $('textarea.project_name').val(),
-                    description: $('textarea.description').val()
-                }
+                $('.save_text').html('у проекта нет имени')
+                $('.save').css('background-color', '#711A1A')
+                setTimeout(() => {
+                    $('.save_text').html('сохранить проект')
+                    $('.save').css('background-color', 'transparent')
+
+                }, 2000)
             }
-            create_post(form_data)
         }
         function create_post(form_data) {
             console.log(form_data)
@@ -109,12 +135,10 @@
                 // handle a successful response
                 success : function(json) {
                     $('#post-text').val(''); // remove the value from the input
-                    if (json['action_type'] === 'auth' || json['action_type'] === 'logout') {
-                        location.reload();
-                    }
                     if ((json['action_type'] === 'update_project' || json['action_type'] === 'create_project')  && json['status'] === 'succeeded') {
                         $('.save_text').html('проект сохранён')
                         $('.save').css('background-color', '#236229')
+                        $('.save ').addClass(String(json['id']))
                         setTimeout(() => {
                             $('.save_text').html('сохранить проект')
                             $('.save').css('background-color', 'transparent')
