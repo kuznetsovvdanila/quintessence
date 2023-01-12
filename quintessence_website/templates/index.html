@@ -61,9 +61,16 @@
             </div>
         </div>
     </div>
+    <div class="smooth_scroll price_page hidden">
+        <div class="main_container flex btw gilroy_regular">
+            <div class="price_page_header gilroy_bold">
+                Стоимость дизайн проекта
+            </div>
+        </div>
+    </div>
     <script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
     <script>
-        // smooth scroll
+            // smooth scroll
         function projects_placer() {
             const project_containers = document.getElementsByClassName('project_container');
 
@@ -84,14 +91,26 @@
         }
         projects_placer();
 
-        const body = document.body,
-        smooth_scroll = document.getElementsByClassName('smooth_scroll')[0],
-        smooth_scroll_height = smooth_scroll.getBoundingClientRect().height - 1,
-        speed = 0.15;
+        const body = document.body
+        var smooth_scroll = document.getElementsByClassName('projects_page')[0]
+        var smooth_scroll_height = smooth_scroll.getBoundingClientRect().height - 1
+        var speed = 0.08;
 
         var offset = 0;
 
-        body.style.height = Math.floor(smooth_scroll_height) + "px";
+        enable_scroll('projects_page')
+
+        function enable_scroll(page_type) {
+            smooth_scroll = document.getElementsByClassName(page_type)[0]
+            smooth_scroll_height = smooth_scroll.getBoundingClientRect().height - 1
+
+            offset = 0;
+
+            body.style.height = Math.floor(smooth_scroll_height) + "px";
+
+            smooth_scrolling(smooth_scroll, offset, speed);
+        }
+
 
         function smooth_scrolling() {
             offset += (window.pageYOffset - offset) * speed;
@@ -101,40 +120,55 @@
 
             call_scroll = requestAnimationFrame(smooth_scrolling);
         }
-        smooth_scrolling();
 
 
         // projects / price changer
         $('.page_changer_option.price_option').click(function() {
             if ($('.page_changer_option.projects_option').hasClass('active')) {
-                $('.smooth_scroll.projects_page').css('transition', '0.5s');
-                $('.smooth_scroll.projects_page').css('padding', '5vw 0 0 0');
-                $('.smooth_scroll.projects_page').css('opacity', '0');
+                // hide project_page
+                $('.smooth_scroll.projects_page').css('transition', '0.7s');
+                $('.smooth_scroll.projects_page').addClass('hidden');
 
-                $('.page_changer_switcher').css('min-width', '100%')
+                $('.page_changer_switcher').css('min-width', '100%');
                 setTimeout(() => {
-                    $('.page_changer_switcher').css('right', '50%')
-                    $('.page_changer_switcher').css('min-width', '50%')
+                    $('.page_changer_switcher').css('right', '50%');
+                    $('.page_changer_switcher').css('min-width', '50%');
                 }, 200)
+
+                setTimeout(() => {
+                    // show price_page
+                    $('.smooth_scroll.price_page').removeClass('hidden');
+                }, 500)
             }
             $('.page_changer_option.price_option').addClass('active')
             $('.page_changer_option.projects_option').removeClass('active')
+            window.cancelAnimationFrame(call_scroll);
+            enable_scroll('price_page');
         })
         $('.page_changer_option.projects_option').click(function() {
             if ($('.page_changer_option.price_option').hasClass('active')) {
-                $('.smooth_scroll.projects_page').css('padding', '0vw 0 0 0');
-                $('.smooth_scroll.projects_page').css('opacity', '1');
-                $('.smooth_scroll.projects_page').css('transition', '0');
+                // hide price_page
+                $('.smooth_scroll.price_page').css('transition', '0.7s');
+                $('.smooth_scroll.price_page').addClass('hidden');
 
-                $('.page_changer_switcher').css('right', '100%')
-                $('.page_changer_switcher').css('min-width', '100%')
+                $('.page_changer_switcher').css('right', '100%');
+                $('.page_changer_switcher').css('min-width', '100%');
                 setTimeout(() => {
-                    $('.page_changer_switcher').css('min-width', '50%')
-                    $('.smooth_scroll.projects_page').css('transition', '0s');
+                    $('.page_changer_switcher').css('min-width', '50%');
                 }, 200)
+
+                setTimeout(() => {
+                    // show project_page
+                    $('.smooth_scroll.projects_page').removeClass('hidden');
+                }, 500)
+                setTimeout(() => {
+                    $('.smooth_scroll.projects_page').css('transition', '');
+                }, 1000)
             }
             $('.page_changer_option.projects_option').addClass('active')
             $('.page_changer_option.price_option').removeClass('active')
+            window.cancelAnimationFrame(call_scroll);
+            enable_scroll('projects_page')
         })
     </script>
 </body>
